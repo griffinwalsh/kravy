@@ -43,7 +43,7 @@ module Kravy
     def ai_hand(*card_numbers)
       if card_numbers.size == @hand_size
         cards = numbers_to_cards(card_numbers)
-        @ai.hand(cards.dup)
+        @ai.hand = cards.dup
         @ai_hand = cards.dup
         use_cards cards
       else

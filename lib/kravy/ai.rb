@@ -2,16 +2,16 @@ module Kravy
   class AI
     def initialize(game)
       @game = game
+      @iterations = 1000
     end
 
-    def hand(cards)
-      @hand = cards
-    end
+    attr_accessor :iterations
+    attr_accessor :hand
 
     def new_turn
       stars = Hash.new(0)
 
-      1000.times do
+      @iterations.times do
         human_cards = (1...@game.player_count).map do
           Card.new(rand(@game.card_count) + 1)
         end
