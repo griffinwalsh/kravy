@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.expand_path("../../lib", __FILE__)
+require 'rubygems'
+require 'pry'
+require 'kravy'
+
+Kravy::Game.new.instance_eval do
+  player_count 3
+  hand_size 5
+  card_count 104
+  row_count 4
+  row_size 3
+
+  new_round
+  ai_hand 10, 20, 30, 40, 50
+  initial_cards 11, 22, 33, 44
+
+  new_turn
+  p ai_card
+  human_cards 12, 53
+  3.times { p next_card }
+  p show_table
+
+  new_turn
+  p ai_card
+  human_cards 34, 35
+  3.times { p next_card }
+  p show_table
+
+  pry :prompt => proc { "> " }
+end
