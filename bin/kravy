@@ -4,4 +4,13 @@ require 'rubygems'
 require 'pry'
 require 'kravy'
 
-Kravy::Game.new.pry
+Kravy::Game.new.pry :prompt => [
+  proc { |target, nest_level, pry|
+    "[#{pry.input_array.size}] kravy> "
+  },
+
+  proc { |target, nest_level, pry|
+    "[#{pry.input_array.size}] kravy* "
+  }
+]
+
