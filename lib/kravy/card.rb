@@ -6,7 +6,10 @@ module Kravy
     end
 
     class << self
-      alias_method :original_new, :new
+      unless @new_aliased
+        alias_method :original_new, :new
+        @new_aliased = true
+      end
 
       def new(number)
         @cards[number]

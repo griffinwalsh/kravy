@@ -23,6 +23,10 @@ module Kravy
     setup_attr :row_count
     setup_attr :row_size
 
+    def all_cards
+      Set.new(1..@card_count).map! {|n| Kravy::Card.new(n) }
+    end
+
     def new_round
       if @put_cards and not @put_cards.empty?
         raise RuntimeError, "There seem to be some cards to be processed with #next_card"
@@ -38,6 +42,7 @@ module Kravy
       nil
     end
 
+    attr_reader :used_cards
     attr_reader :table
 
     def ai_hand(*card_numbers)

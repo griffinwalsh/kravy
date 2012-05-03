@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << File.expand_path("../../lib", __FILE__)
+require 'rubygems'
+require 'pry'
+require 'kravy'
+
+Kravy::Game.new.instance_eval do
+  def self.reload
+    Dir[File.expand_path("../../lib/**/*.rb", __FILE__)].each do |file|
+      load file
+    end
+  end
+
+  player_count 3
+  card_count 104
+  row_count 4
+  row_size 3
+  hand_size 5
+
+  pry
+end
+
