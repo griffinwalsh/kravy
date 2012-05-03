@@ -172,11 +172,162 @@ describe Kravy::Game do
     end
   end
 
-  describe "#ai_card"
+  describe "#ai_card" do
+    before do
+      game.new_round
+      game.ai_hand 1, 2, 3, 4
+      game.initial_cards 10, 20, 30, 40
 
-  describe "#human_cards"
+      game.ai.stub(:put_card => Kravy::Card.new(2))
+      game.new_turn
+    end
 
-  describe "#next_card"
+    it "returns the number of the card put by AI" do
+      game.ai_card.should == 2
+    end
+  end
+
+  describe "#human_cards" do
+    before do
+      game.new_round
+      game.ai_hand 1, 2, 3, 34
+      game.initial_cards 10, 20, 30, 40
+    end
+
+    it "stores cards put by human players to be processed along with AI's card" do
+      game.ai.stub(:put_card => Kravy::Card.new(34))
+      game.new_turn
+      game.human_cards 32, 42
+      3.times { game.next_card }
+      game.show_table.should == [[10], [20], [30, 32, 34], [40, 42]]
+    end
+
+    context "given wrong number of cards" do
+      it "raises ArgumentError" do
+        expect { game.human_cards 32, 33, 35 }
+      end
+    end
+
+  end
+
+  describe "#next_card" do
+    before do
+      game.new_round
+      game.ai_hand(*ai_hand)
+      game.initial_cards(*initial_cards)
+
+      game.ai.stub(:put_card).and_return *((_ = *ai_put_card).map{|n| Kravy::Card.new(n)})
+      game.new_turn
+      game.human_cards(*human_cards)
+    end
+
+    let(:ai_hand) { [1, 2, 3, 34] }
+    let(:initial_cards) { [10, 20, 30, 40] }
+    let(:ai_put_card) { 34 }
+    let(:human_cards) { [50, 70] }
+
+    it "processes the cards from lower to higher" do
+      game.next_card[1].should == 34
+      game.next_card[1].should == 50 
+      game.next_card[1].should == 70
+    end
+
+    it "returns nil when there are no remaining cards" do
+      3.times { game.next_card }
+      game.next_card.should be_nil
+    end
+
+    context "when human cards were not specified before" do
+      let(:ai_put_card) { [34, 1] }
+
+      before do
+        loop { break if game.next_card.nil? }
+        game.new_turn
+      end
+
+      it "raises RuntimeError" do
+        expect { game.next_card }.to raise_error(RuntimeError)
+      end
+    end
+
+    shared_examples "the return value" do |*expected_elems|
+      let(:return_value) { game.next_card }
+
+      describe "the return value" do
+        expected_elems.each_with_index do |expected_elem, index|
+          describe "element #{index}" do
+            it "is #{expected_elem.inspect}" do
+              return_value[index].should == expected_elem
+            end
+          end
+        end
+
+        it "has #{expected_elems.size} elements" do
+          return_value.should have(expected_elems.size).elements
+        end
+      end
+    end
+
+    context "when the card can be added to a row without taking" do
+      let(:ai_hand) { [1, 2, 3, 12] }
+      let(:ai_put_card) { 12 }
+      let(:human_cards) { [13, 42] }
+
+      before do
+        game.next_card
+      end
+
+      include_examples "the return value", :added, 13, [10, 12]
+    end
+
+    context "when the card takes a row" do
+      let(:ai_put_card) { 34 }
+      let(:human_cards) { [33, 35] }
+
+      before do
+        game.next_card
+        game.next_card
+      end
+
+      include_examples "the return value", :took, 35, [30, 33, 34]
+    end
+
+    context "when AI's card has to eat a row" do
+      let(:ai_put_card) { 3 }
+
+      before do
+        game.ai.stub(:eat_row => 2)
+      end
+
+      include_examples "the return value", :ai_ate, 3, [30]
+
+      it "calls ai#eat_row and eats that row" do
+        game.ai.should_receive(:eat_row).and_return(2)
+        game.next_card
+
+        game.show_table.should == [[3], [10], [20], [40]]
+      end
+    end
+
+    context "when human's card has to eat a row" do
+      let(:ai_put_card) { 34 }
+      let(:human_cards) { [5, 6] }
+
+      include_examples "the return value", :eat, 5
+
+      it "sets card to eat" do
+        game.next_card
+        game.card_to_eat.should == 5
+      end
+
+      it "prevents next calls to #next_card until a row is eaten" do
+        game.next_card
+        expect { game.next_card }.to raise_error(RuntimeError)
+        game.eat 20
+        expect { game.next_card }.not_to raise_error(RuntimeError)
+      end
+    end
+  end
 
   describe "#eat"
 

@@ -83,6 +83,7 @@ module Kravy
 
       @ai.new_turn
       @ai_card = @ai.put_card
+      @put_cards = nil
 
       if @ai_hand.include? @ai_card
         @ai_hand.delete @ai_card
@@ -112,6 +113,10 @@ module Kravy
         raise RuntimeError, "Card #@card_to_eat has to be eaten first"
       end
 
+      unless @put_cards
+        raise RuntimeError, "There are no cards to be processed"
+      end
+
       unless @put_cards.empty?
         card = @put_cards.shift
 
@@ -134,6 +139,10 @@ module Kravy
           raise RuntimeError, "Oh, @table.put_card returned something silly :("
         end
       end
+    end
+
+    def card_to_eat
+      @card_to_eat.number
     end
 
     def eat(card_number_from_row)
