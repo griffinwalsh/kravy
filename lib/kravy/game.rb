@@ -39,6 +39,9 @@ module Kravy
       @used_cards = Set.new
       @ai_hand = []
       @table.clear
+
+      @ai.new_round
+
       nil
     end
 
@@ -93,7 +96,7 @@ module Kravy
       if @ai_hand.include? @ai_card
         @ai_hand.delete @ai_card
       else
-        raise RuntimeError, "AI wanted to put #{@ai_card.number}, but it does not have it :)"
+        raise RuntimeError, "AI wanted to put #{@ai_card ? @ai_card.number : "nil"}, but it does not have it :)"
       end
       nil
     end
@@ -179,6 +182,14 @@ module Kravy
       @table.rows.map { |row| row.map &:number }
     end
 
+    def valid_card?(card)
+      card.number >= 1 and card.number <= @card_count
+    end
+
+    def used_card?(card)
+      @used_cards.include? card
+    end
+
     private
 
     def numbers_to_cards(card_numbers, check_unused = true)
@@ -195,14 +206,6 @@ module Kravy
 
         card
       end
-    end
-
-    def valid_card?(card)
-      card.number >= 1 and card.number <= @card_count
-    end
-
-    def used_card?(card)
-      @used_cards.include? card
     end
 
     def use_card(card)

@@ -41,6 +41,11 @@ describe Kravy::Game do
       game.new_round.should be_nil
     end
 
+    it "calls ai#new_round" do
+      game.ai.should_receive(:new_round)
+      game.new_round
+    end
+
     context "when there are still some cards from former turn" do
       before do
         game.new_round
@@ -89,6 +94,12 @@ describe Kravy::Game do
       game.ai.hand.map(&:number).sort.should == [1, 2, 3, 4]
     end
 
+    it "marks the cards as used" do
+      game.new_round
+      game.ai_hand 1, 2, 3, 4
+      game.should be_used_card(Kravy::Card.new(3))
+    end
+
     context "wrong number of cards is given" do
       it "raises an ArgumentError" do
         game.new_round
@@ -102,6 +113,12 @@ describe Kravy::Game do
       game.new_round
       game.initial_cards 10, 20, 30, 40
       game.table.rows.map{|r|r.map(&:number)}.should == [[10], [20], [30], [40]]
+    end
+
+    it "marks the cards as used" do
+      game.new_round
+      game.initial_cards 10, 20, 30, 40
+      game.should be_used_card(Kravy::Card.new(20))
     end
 
     context "when wrong number of cards is given" do
@@ -200,6 +217,12 @@ describe Kravy::Game do
       game.human_cards 32, 42
       3.times { game.next_card }
       game.show_table.should == [[10], [20], [30, 32, 34], [40, 42]]
+    end
+
+    it "marks the cards as used" do
+      game.new_turn
+      game.human_cards 32, 42
+      game.should be_used_card(Kravy::Card.new(32))
     end
 
     context "given wrong number of cards" do
@@ -329,8 +352,51 @@ describe Kravy::Game do
     end
   end
 
-  describe "#eat"
+  describe "#eat" do
+    before do
+      game.new_round
+      game.initial_cards 10, 20, 30, 40
+      game.ai_hand 31, 32, 33, 34
+    end
 
-  describe "#show_table"
+    context "when there is a card from #next_card to be eaten" do
+      before do
+        game.new_turn
+        game.human_cards 8, 9
+        game.next_card
+      end
+
+      it "eats the row containing the given card" do
+        game.eat(20)
+        game.show_table.should == [[8], [10], [30], [40]]
+      end
+
+      context "where no row contains the card" do
+        it "raises ArgumentError" do
+          expect { game.eat(42) }.to raise_error(ArgumentError)
+        end
+      end
+    end
+
+    context "when there is no such a card" do
+      it "raises RuntimeError" do
+        game.new_turn
+        game.human_cards 8, 9
+        expect { game.eat(40) }.to raise_error(RuntimeError)
+      end
+    end
+  end
+
+  describe "#show_table" do
+    it "returns array of the rows on the table" do
+      game.table.clear
+
+      game.table.add_row([Kravy::Card.new(1), Kravy::Card.new(2)])
+      game.table.add_row([Kravy::Card.new(3)])
+      game.table.add_row([Kravy::Card.new(42)])
+
+      game.show_table.should == [[1, 2], [3], [42]]
+    end
+  end
 
 end
