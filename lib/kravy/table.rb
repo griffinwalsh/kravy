@@ -3,14 +3,10 @@ module Kravy
 
     def initialize(game, rows = [])
       @game = game
-      @rows = rows
+      @rows = rows.dup
     end
 
     attr_reader :rows
-
-    def row(i)
-      @rows[i]
-    end
 
     def clear
       @rows = []
@@ -72,7 +68,7 @@ module Kravy
     end
 
     def self.count_the_stars(row)
-      row.map(&:stars).inject {|a,b| a+b}
+      row.map(&:stars).inject(0) {|a,b| a+b}
     end
 
   end

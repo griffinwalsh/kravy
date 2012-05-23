@@ -41,7 +41,7 @@ describe Kravy::Game do
       game.new_round.should be_nil
     end
 
-    it "calls ai#new_round" do
+    it "sends ai#new_round" do
       game.ai.should_receive(:new_round)
       game.new_round
     end

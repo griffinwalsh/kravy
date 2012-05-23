@@ -1,8 +1,9 @@
 module Kravy
   class RandomDeck
 
-    def initialize(cards)
-      @cards = cards
+    def initialize(cards, probabilities)
+      @cards = cards.dup
+      @probabilities = probabilities
       @card_stack = []
     end
 
@@ -14,11 +15,15 @@ module Kravy
     end
 
     def take_random
-      index = rand(@cards.size)
-      card = @cards[index]
-      @cards[index] = @cards.last
-      @cards.pop
-      card
+      unless @cards.empty?
+        index = rand(@cards.size)
+        card = @cards[index]
+        @cards[index] = @cards.last
+        @cards.pop
+        card
+      else
+        raise RuntimeError, "The deck is empty"
+      end
     end
 
   end
